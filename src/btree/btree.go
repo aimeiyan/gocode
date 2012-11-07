@@ -36,32 +36,34 @@ func newNode(n, branch int, leaf bool) *Node {
 	}
 }
 
-func (x *Node) Split(branch, idx int) { //  idx is Children's index
-	y := x.Children[idx] //  x is parent, y is full
+func (parent *Node) Split(branch, idx int) { //  idx is Children's index
+	full := parent.Children[idx]
 
-	// make a new node, copy y's right most to it
-	z := newNode(branch-1, branch, y.Leaf)
+	// make a new node, copy full's right most to it
+	n := newNode(branch-1, branch, full.Leaf)
 	for i := 0; i < branch-1; i++ {
-		z.Keys[i] = y.Keys[i+branch]
-		z.Children[i] = y.Children[i+branch]
+		n.Keys[i] = full.Keys[i+branch]
+		n.Children[i] = full.Children[i+branch]
 	}
-	y.N = branch - 1
+	n.Children[branch-1] = full.Children[2*branch-1] // copy last child
 
-	// shift x, add the key children
-	for i := x.N; i > idx; i-- {
-		x.Children[i] = x.Children[i-1]
-		x.Keys[i+1] = x.Keys[i]
+	full.N = branch - 1 // is half full now, copied to n(new one)
+
+	// shift parent, add new key and children
+	for i := parent.N; i > idx; i-- {
+		parent.Children[i] = parent.Children[i-1]
+		parent.Keys[i+1] = parent.Keys[i]
 	}
-	x.Keys[idx] = y.Keys[branch]
-	x.Children[idx+1] = z
-	x.N += 1
+	parent.Keys[idx] = full.Keys[branch-1]
+	parent.Children[idx+1] = n
+	parent.N += 1
 }
 
 func (tree *Btree) Insert(k Key) {
-	root := tree.root
+	root := tree.Root
 	if root.N == 2*tree.branch-1 {
 		s := newNode(0, tree.branch, false)
-		tree.root = s
+		tree.Root = s
 		s.Children[0] = root
 		s.Split(tree.branch, 0)
 		s.InsertNonFull(tree.branch, k)
@@ -84,7 +86,6 @@ func (x *Node) InsertNonFull(branch int, k Key) {
 			i -= 1
 		}
 		c := x.Children[i]
-		// fmt.Println("key:", k, "idx:", i, "me:", x, x.Keys[i-1], x.Keys[i], "child:", c)
 		if c.N == 2*branch-1 {
 			x.Split(branch, i)
 			if k > x.Keys[i] {
@@ -92,7 +93,6 @@ func (x *Node) InsertNonFull(branch int, k Key) {
 			}
 		}
 		x.Children[i].InsertNonFull(branch, k)
-		// fmt.Println("---insert", c)
 	}
 }
 
@@ -105,29 +105,23 @@ func space(n int) string {
 }
 
 func (x *Node) String() string {
-	c := 0
-
-	for c < x.N && x.Children[c] != nil {
-		c += 1
-	}
-
-	return fmt.Sprintf("{n=%d, Leaf=%v, Keys=%v, Children=%v}",
-		x.N, x.Leaf, x.Keys[:x.N], x.Children[:c])
+	return fmt.Sprintf("{n=%d, Leaf=%v, Keys=%v, Children=%v}\n",
+		x.N, x.Leaf, x.Keys, x.Children)
 }
 
 func (tree *Btree) String() string {
-	return tree.root.String()
+	return tree.Root.String()
 }
 
 type Btree struct {
-	root   *Node
+	Root   *Node
 	branch int
 }
 
 func New(branch int) *Btree {
-	return &Btree{root: newNode(0, branch, true), branch: branch}
+	return &Btree{Root: newNode(0, branch, true), branch: branch}
 }
 
 func (tree *Btree) Search(k Key) (n *Node, idx int) {
-	return tree.root.Search(k)
+	return tree.Root.Search(k)
 }
