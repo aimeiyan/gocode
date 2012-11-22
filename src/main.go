@@ -1,25 +1,49 @@
 package main
 
 import (
-	. "btree"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 )
 
 func main() {
-	var tree *Btree = New(4)
-	fmt.Println(tree)
 
-	// arr := []int{1, 2, 3, 4}
+	fset := token.NewFileSet() // positions are relative to fset
 
-	// fmt.Println(arr[:2])
-for i := 1; i < 100; i++ {
-		tree.Insert(Key(i))
-
-		fmt.Printf("%d------------------------------------\n", i)
-		fmt.Println(tree)
-		fmt.Printf("%d------------------------------------\n", i)
-		fmt.Println()
+	// Parse the file containing this very example
+	// but stop after processing the imports.
+	f, err := parser.ParseFile(fset, "tree/tree.go", nil, parser.DeclarationErrors)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	fmt.Println(tree)
+	fmt.Println(fset)
+	fmt.Printf("%#v", f)
+
+	for _, v := range f.Decls {
+		switch i := v.(type) {
+		case *ast.FuncDecl:
+			fmt.Println("func", i.Name, i.Pos(), i.End())
+			fmt.Println("------------", *i.Type.Params, i.Body)
+		case *ast.GenDecl:
+			fmt.Println("gen", i.Tok, i.Pos(), i.End())
+		}
+		// fmt.Printf("----------------%#v\n", v)
+	}
+
+	fmt.Println(f.Name)
+
+	for _, v := range f.Imports {
+		fmt.Printf("%#v", v.Path)
+	}
+
+	fmt.Println("\n\n=====================================")
+
+	fset.Iterate(func(f *token.File) bool{
+		fmt.Println(f.Name(), f.LineCount(), f.Line(345))
+		fmt.Println("-----------------")
+		return true
+	})
 }
