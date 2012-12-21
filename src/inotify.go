@@ -9,6 +9,15 @@ import (
 	"unsafe"
 )
 
+type FileEvent struct {
+	mask uint32
+	File string
+}
+
+func (e *FileEvent) isCreate() {
+	return e.mask&syscall.IN_CREATE == syscall.IN_CREATE
+}
+
 func add_watch_r(inotify_fd int, f string, paths map[int]string) {
 	fi, err := os.Open(f)
 	if err != nil {
@@ -36,15 +45,15 @@ func add_watch_r(inotify_fd int, f string, paths map[int]string) {
 }
 
 func printEvent(file string, mask uint32) {
-	if (mask & syscall.IN_ACCESS != 0) {
+	if mask&syscall.IN_ACCESS != 0 {
 		log.Printf("Access %s", file)
 	}
 
-	if (mask & syscall.IN_ATTRIB != 0) {
+	if mask&syscall.IN_ATTRIB != 0 {
 		log.Printf("ATTRIB %s", file)
 	}
 
-	if (mask & syscall.IN_OPEN != 0) {
+	if mask&syscall.IN_OPEN != 0 {
 		log.Printf("OPEN %s", file)
 	}
 
