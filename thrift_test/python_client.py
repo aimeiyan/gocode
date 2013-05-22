@@ -10,7 +10,7 @@ from thrift.protocol import TBinaryProtocol
 from time import time
 
 
-transport = TSocket.TSocket("localhost", 9090)
+transport = TSocket.TSocket("192.168.1.101", 9090)
 transport.open()
 protocol = TBinaryProtocol.TBinaryProtocol(transport)
 
