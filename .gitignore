@@ -1,3 +1,5 @@
 src/code.google.com
 /thrift_test/gen-py
 *.pyc
+out/
+.idea
