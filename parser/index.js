@@ -1,8 +1,11 @@
 (function () {
 
-  var add = function (a, b) {
-    // var c =  a + b;
-    // return c;
+  var add = function (a) {
+    if (a>0) {
+      return a * add(a-1);
+    } else {
+      return 1;
+    }
   };
 
   Object.prototype.error = function (message, t) {
@@ -31,7 +34,12 @@
 
   var parse = make_parse();
 
-  var code = "var a = {}; \na.c = 2;\n var k=3; \n a.f(100, 100); var f = function  (a, b) { return a + b;};";
+  var code = "var a = {}; \na.c.d = 2;";
+  // code += "k = (1 + 2) * 3;\n";
+  code += "var add = " + add.toString() + ";";
+
+  // code = make_parse.toString();
+
   // code = add.toString();
 
   source.innerHTML = escape(code);
